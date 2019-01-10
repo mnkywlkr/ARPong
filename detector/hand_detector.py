@@ -16,26 +16,27 @@ class HandDetector:
         self.fgbg = cv.createBackgroundSubtractorMOG2()
 
     def get_hand_position(self, frame):
-        position = None
+        center_position = None
         fingers_count = 0
 
         mask = self._get_interesting_pixels_mask(frame)
         transformed = self._get_transformed_pixels_mask(mask)
-
+        cv.imshow('tra', mask)
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_begin/py_contours_begin.html#contours-getting-started
         img, contours, hierarchy = cv.findContours(transformed, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-
-
         if len(contours) > 0:
             max_area = max(contours, key=cv.contourArea)
             x, y, w, h = cv.boundingRect(max_area)
             cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            position = (w/2, h/2)
+            center_position = (int(x + (w / 2)), int(y+(h / 2)))
+            cv.circle(frame, center_position, 5, (0, 0, 255), -1)
+
+            #position = max_area
 
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html#contour-features
         # max(contours, key=cv.contourArea)
 
-        return position, fingers_count
+        return center_position #fingers_count
 
     def _get_interesting_pixels_mask(self, frame):
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_filtering/py_filtering.html#filtering
@@ -52,7 +53,7 @@ class HandDetector:
         # (subtract background)
         fgmask = self.fgbg.apply(res)
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html#thresholding
-        val, ret = cv.threshold(fgmask, 100, 255, cv.THRESH_OTSU|cv.THRESH_BINARY_INV)
+        val, ret = cv.threshold(fgmask, 100, 255, cv.THRESH_OTSU|cv.THRESH_BINARY)
         return ret
 
     @staticmethod

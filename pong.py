@@ -33,21 +33,26 @@ def run_game(display_detections=False, input_path=None):
         frame = imutils.resize(frame, width=1000)
         frame = cv2.flip(frame, 1)
 
-        new_position, fingers_count = hand_detector.get_hand_position(frame)
+        #new_position, fingers_count = hand_detector.get_hand_position(frame)
+        new_position = hand_detector.get_hand_position(frame)
+
         if new_position is not None:
             position = new_position
-
+            print(position)
+        """
             if fingers_count == 5:
                 pong_game.reset_game()
+        """
+        #kalman_tracker.add_measurement(position)
+        #kalman_prediction = kalman_tracker.get_prediction()
 
-        kalman_tracker.add_measurement(position)
-        kalman_prediction = kalman_tracker.get_prediction()
+        #if display_detections:
+         #   positions_display.track(position, kalman_prediction)
+          #  positions_display.draw(frame)
 
-        if display_detections:
-            positions_display.track(position, kalman_prediction)
-            positions_display.draw(frame)
-
-        pong_game.make_move(kalman_prediction[1], frame.shape[0])
+        #new_pos_y = position[1]
+        pong_game.make_move(position[1], frame.shape[0])
+        # pong_game.make_move(kalman_prediction[1], frame.shape[0])
         pong_game.draw(frame)
 
         cv2.imshow("result", frame)
