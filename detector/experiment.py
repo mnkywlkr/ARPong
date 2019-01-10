@@ -15,10 +15,25 @@ while True:
 
     handdetect = hd.HandDetector()
     res = handdetect._get_interesting_pixels_mask(frame)
-    res = handdetect._get_transformed_pixels_mask(res)
+    res_1 = handdetect._get_transformed_pixels_mask(res)
+
+    position = None
+    img, contours, hierarchy = cv.findContours(res_1, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    if len(contours) > 0:
+        max_area = max(contours, key=cv.contourArea)
+        x, y, w, h = cv.boundingRect(max_area)
+        cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        position = (w/2, h/2)
+        #print('max: ', position)
+        #print('end')
+    print('position : ' , position)
+    #for c in contours:
+    #   hull = cv.convexHull(c)
+    # cv.drawContours(frame, contours, -1, (0, 255, 0), 3)
     # print (res)
     cv.imshow('before', frame)
-    cv.imshow('after', res)
+    cv.imshow('after', res_1)
+
 
     if not ret:
         break

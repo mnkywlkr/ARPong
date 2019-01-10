@@ -1,7 +1,14 @@
+from sklearn.metrics import pairwise
 import cv2 as cv
 import numpy as np
 from math import acos, pi
 from config import SKIN_LOWER_BOUND, SKIN_UPPER_BOUND
+
+lower_blue = np.array([25,50,50])
+upper_blue = np.array([32,255,255])
+
+lower_green = np.array([65,60,60])
+upper_green = np.array([80,255,255])
 
 
 class HandDetector:
@@ -16,8 +23,17 @@ class HandDetector:
         transformed = self._get_transformed_pixels_mask(mask)
 
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_begin/py_contours_begin.html#contours-getting-started
+        img, contours, hierarchy = cv.findContours(transformed, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+
+        if len(contours) > 0:
+            max_area = max(contours, key=cv.contourArea)
+            x, y, w, h = cv.boundingRect(max_area)
+            cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            position = (w/2, h/2)
+
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html#contour-features
-        # max(contours, key=cv2.contourArea)
+        # max(contours, key=cv.contourArea)
 
         return position, fingers_count
 
@@ -25,18 +41,19 @@ class HandDetector:
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_filtering/py_filtering.html#filtering
         # (blurring)
         blur = cv.GaussianBlur(frame, (5, 5), 0)
+        frame_bw = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_colorspaces/py_colorspaces.html#converting-colorspaces
         hsv = cv.cvtColor(blur, cv.COLOR_BGR2HSV)
-        mask = cv.inRange(hsv, SKIN_LOWER_BOUND, SKIN_UPPER_BOUND)
+        mask = cv.inRange(hsv, lower_green, upper_green)
         mask = cv.erode(mask, None, iterations=2)
         mask = cv.dilate(mask, None, iterations=2)
-        res = cv.bitwise_and(frame, frame, mask=mask)
+        res = cv.bitwise_and(frame_bw, mask, mask=mask)
         # http://docs.opencv.org/3.1.0/db/d5c/tutorial_py_bg_subtraction.html
         # (subtract background)
         fgmask = self.fgbg.apply(res)
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html#thresholding
-        # ret, thresh = cv.threshold(fgmask, 100, 255, cv.THRESH_BINARY)
-        return fgmask
+        val, ret = cv.threshold(fgmask, 100, 255, cv.THRESH_OTSU|cv.THRESH_BINARY_INV)
+        return ret
 
     @staticmethod
     def _get_transformed_pixels_mask(mask):
@@ -45,7 +62,6 @@ class HandDetector:
         morph = cv.morphologyEx(mask,cv.MORPH_CLOSE, kern)
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_filtering/py_filtering.html#filtering
         bil = cv.bilateralFilter(morph, 5, 160, 160)
-
         return bil
 
     @staticmethod
@@ -54,7 +70,6 @@ class HandDetector:
 
         # https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html
         # https://en.wikipedia.org/wiki/Law_of_cosines
-
         return 0
 
 
