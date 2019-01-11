@@ -3,7 +3,7 @@ import numpy as np
 import detector.hand_detector as hd
 
 
-cam = cv.VideoCapture(0)
+cam = cv.VideoCapture(1)
 fgbg = cv.createBackgroundSubtractorMOG2()
 
 while True:
@@ -31,6 +31,12 @@ while True:
     #   hull = cv.convexHull(c)
     # cv.drawContours(frame, contours, -1, (0, 255, 0), 3)
     # print (res)
+    ret, thresh = cv.threshold(res, 127, 255, 0)
+    img, contours, hierarchy = cv.findContours(thresh, 1, 2)
+
+    position = max(contours, key=cv.contourArea)
+    M = cv.moments(position)
+    cv.drawContours(res, [position], 0, (0, 255, 0), 3)
     cv.imshow('before', frame)
     cv.imshow('after', res_1)
 

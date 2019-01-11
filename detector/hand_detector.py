@@ -1,21 +1,31 @@
 from sklearn.metrics import pairwise
 import cv2 as cv
 import numpy as np
+from enum import Enum
 from math import acos, pi
 from config import SKIN_LOWER_BOUND, SKIN_UPPER_BOUND
 
-lower_blue = np.array([25,50,50])
-upper_blue = np.array([32,255,255])
+lower_blue = np.array([78,158,124])
+upper_blue = np.array([138,255,255])
 
-lower_green = np.array([65,60,60])
+lower_green = np.array([50, 100, 50])
 upper_green = np.array([80,255,255])
 
+class Color(Enum):
+    GREEN = 0
+    BLUE = 1
 
 class HandDetector:
-    def __init__(self):
+    def __init__(self, color):
+        if color == Color.GREEN:
+            self.lower_bound = lower_green
+            self.upper_bound = upper_green
+        elif color == Color.BLUE:
+            self.lower_bound = lower_blue
+            self.upper_bound = upper_blue
         self.fgbg = cv.createBackgroundSubtractorMOG2()
 
-    def get_hand_position(self, frame):
+    def get_mark_position(self, frame):
         center_position = None
         fingers_count = 0
 
@@ -31,12 +41,7 @@ class HandDetector:
             center_position = (int(x + (w / 2)), int(y+(h / 2)))
             cv.circle(frame, center_position, 5, (0, 0, 255), -1)
 
-            #position = max_area
-
-        # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html#contour-features
-        # max(contours, key=cv.contourArea)
-
-        return center_position #fingers_count
+        return center_position
 
     def _get_interesting_pixels_mask(self, frame):
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_filtering/py_filtering.html#filtering
@@ -45,7 +50,10 @@ class HandDetector:
         frame_bw = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         # http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_colorspaces/py_colorspaces.html#converting-colorspaces
         hsv = cv.cvtColor(blur, cv.COLOR_BGR2HSV)
-        mask = cv.inRange(hsv, lower_green, upper_green)
+        # mask = cv.inRange(hsv, lower_green, upper_green)
+
+        # mask = cv.inRange(hsv, SKIN_LOWER_BOUND, SKIN_UPPER_BOUND)
+        mask = cv.inRange(hsv, self.lower_bound, self.upper_bound)
         mask = cv.erode(mask, None, iterations=2)
         mask = cv.dilate(mask, None, iterations=2)
         res = cv.bitwise_and(frame_bw, mask, mask=mask)

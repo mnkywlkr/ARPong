@@ -97,3 +97,52 @@ class PongGame:
         ball.draw(frame, ratio, x_shift, y_shift)
 
         score.draw(frame, ratio, x_shift, y_shift)
+
+    def make_move_two_players(self, user_target_y=None, user2_target_y=None, frame_height=0):
+        if self.score.a_score == Score.MAX_SCORE or self.score.b_score == Score.MAX_SCORE:
+            return
+
+        ball = self.ball
+        board = self.board
+        paddle_a = self.paddle_a
+        paddle_b = self.paddle_b
+
+        ball.make_move()
+
+        if (ball.y == 0) or (ball.y == board.height - 1):
+            ball.v_y *= -1
+
+        a_scored = ball.x == board.width
+        b_scored = ball.x == -1
+
+        if a_scored:
+            self.score.a_scored()
+
+        if b_scored:
+            self.score.b_scored()
+
+        if a_scored or b_scored:
+            ball.x = board.width / 2
+            ball.y = board.height / 2
+            ball.v_x *= -1
+
+        # should be removed
+        # paddle_a.make_ai_move(board, ball)
+        if user2_target_y is None:
+            paddle_a.make_ai_move(board, ball)
+        else:
+            height_ratio = math.floor(frame_height / board.height)
+            user2_target_y = max(int(user2_target_y / height_ratio), 0)
+            paddle_a.make_move_towards(board, user2_target_y)
+
+        if user_target_y is None:
+            paddle_b.make_ai_move(board, ball)
+        else:
+            height_ratio = math.floor(frame_height / board.height)
+            user_target_y = max(int(user_target_y / height_ratio), 0)
+            paddle_b.make_move_towards(board, user_target_y)
+
+        a_collides = paddle_a.collides_with_ball(ball)
+        b_collides = paddle_b.collides_with_ball(ball)
+        if a_collides or b_collides:
+            ball.v_x *= -1

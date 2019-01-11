@@ -2,7 +2,7 @@ import imutils
 import cv2
 
 from config import SHOW_DETECTIONS
-from detector.hand_detector import HandDetector
+from detector.hand_detector import HandDetector, Color
 from game_engine.pong_game import PongGame
 from utils.kalman import KalmanTracker
 from utils.positions_display import PositionsDisplay
@@ -18,11 +18,12 @@ def run_game(display_detections=False, input_path=None):
 
     pong_game = PongGame()
 
-    hand_detector = HandDetector()
+    green_detector = HandDetector(Color.GREEN)
+    blue_detector = HandDetector(Color.BLUE)
 
-    kalman_tracker = KalmanTracker()
-    if display_detections:
-        positions_display = PositionsDisplay()
+    #kalman_tracker = KalmanTracker()
+    #if display_detections:
+    #    positions_display = PositionsDisplay()
 
     while True:
         (grabbed, frame) = video_capture.read()
@@ -34,11 +35,15 @@ def run_game(display_detections=False, input_path=None):
         frame = cv2.flip(frame, 1)
 
         #new_position, fingers_count = hand_detector.get_hand_position(frame)
-        new_position = hand_detector.get_hand_position(frame)
+        green_position = green_detector.get_mark_position(frame)
+        blue_position = blue_detector.get_mark_position(frame)
 
-        if new_position is not None:
-            position = new_position
-            print(position)
+        if green_position is not None:
+            player1_position = green_position
+
+        if blue_position is not None:
+            player2_position = blue_position
+        #    print(position)
         """
             if fingers_count == 5:
                 pong_game.reset_game()
@@ -51,7 +56,8 @@ def run_game(display_detections=False, input_path=None):
           #  positions_display.draw(frame)
 
         #new_pos_y = position[1]
-        pong_game.make_move(position[1], frame.shape[0])
+        # pong_game.make_move(position[1], frame.shape[0])
+        pong_game.make_move_two_players(player1_position[1], player2_position[1], frame.shape[0])
         # pong_game.make_move(kalman_prediction[1], frame.shape[0])
         pong_game.draw(frame)
 
@@ -60,10 +66,12 @@ def run_game(display_detections=False, input_path=None):
         key = cv2.waitKey(100) & 0xFF
         if key == ord("q"):
             break
+        if key == ord("r"):
+            pong_game.reset_game()
 
     video_capture.release()
     cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    run_game(SHOW_DETECTIONS)
+    run_game(SHOW_DETECTIONS, 1)
