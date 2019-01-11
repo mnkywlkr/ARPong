@@ -16,10 +16,11 @@ def run_game(display_detections=False, input_path=None):
 
     # position = (0, 0)
 
-    pong_game = PongGame()
-
     green_detector = MarkDetector(Color.GREEN)
     blue_detector = MarkDetector(Color.BLUE)
+    # find color green
+    # find color blue: blue_detector.find_color()
+    pong_game = PongGame()
 
     while True:
         (grabbed, frame) = video_capture.read()
