@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-import detector.hand_detector as hd
+import detector.marker_detector as hd
 
 
 cam = cv.VideoCapture(1)
@@ -13,7 +13,7 @@ while True:
     # blur = cv.GaussianBlur(frame, (5, 5), 0)
     #hls = cv.cvtColor(blur, cv.COLOR_BGR2HSV)
 
-    handdetect = hd.HandDetector()
+    handdetect = hd.MarkDetector()
     res = handdetect._get_interesting_pixels_mask(frame)
     res_1 = handdetect._get_transformed_pixels_mask(res)
 

@@ -2,7 +2,7 @@ import imutils
 import cv2
 
 from config import SHOW_DETECTIONS
-from detector.hand_detector import HandDetector, Color
+from detector.marker_detector import MarkDetector, Color
 from game_engine.pong_game import PongGame
 from utils.kalman import KalmanTracker
 from utils.positions_display import PositionsDisplay
@@ -18,8 +18,8 @@ def run_game(display_detections=False, input_path=None):
 
     pong_game = PongGame()
 
-    green_detector = HandDetector(Color.GREEN)
-    blue_detector = HandDetector(Color.BLUE)
+    green_detector = MarkDetector(Color.GREEN)
+    blue_detector = MarkDetector(Color.BLUE)
 
     #kalman_tracker = KalmanTracker()
     #if display_detections:
@@ -74,4 +74,4 @@ def run_game(display_detections=False, input_path=None):
 
 
 if __name__ == "__main__":
-    run_game(SHOW_DETECTIONS, 1)
+    run_game(SHOW_DETECTIONS, 0)

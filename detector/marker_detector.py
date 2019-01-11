@@ -15,7 +15,7 @@ class Color(Enum):
     GREEN = 0
     BLUE = 1
 
-class HandDetector:
+class MarkDetector:
     def __init__(self, color):
         if color == Color.GREEN:
             self.lower_bound = lower_green
