@@ -5,9 +5,12 @@ from enum import Enum
 from math import acos, pi
 from config import SKIN_LOWER_BOUND, SKIN_UPPER_BOUND
 
-lower_blue = np.array([78,158,124])
-upper_blue = np.array([138,255,255])
+#lower_blue = np.array([78,158,124])
+#upper_blue = np.array([138,255,255])
 
+lower_blue = np.array([91,124,120])
+upper_blue = np.array([131,164,160])
+#111, 144, 140
 lower_green = np.array([50, 100, 50])
 upper_green = np.array([80,255,255])
 
@@ -16,13 +19,9 @@ class Color(Enum):
     BLUE = 1
 
 class MarkDetector:
-    def __init__(self, color):
-        if color == Color.GREEN:
-            self.lower_bound = lower_green
-            self.upper_bound = upper_green
-        elif color == Color.BLUE:
-            self.lower_bound = lower_blue
-            self.upper_bound = upper_blue
+    def __init__(self):
+        self.lower_bound = None
+        self.upper_bound = None
         self.fgbg = cv.createBackgroundSubtractorMOG2()
 
     def get_mark_position(self, frame):
@@ -73,6 +72,34 @@ class MarkDetector:
         bil = cv.bilateralFilter(morph, 5, 160, 160)
         return bil
 
+
+    def get_color(self):
+        cam = cv.VideoCapture(0)
+        while True:
+            ret, frame = cam.read()
+            # frame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+            cv.imshow('before', frame)
+
+            if not ret:
+                break
+            k = cv.waitKey(1)
+            if k % 256 == ord('a'):
+                cv.imwrite('sample.png', frame)
+                print('take color sample')
+                break
+        cam.release()
+        cv.destroyAllWindows()
+
+        screen = cv.imread('sample.png')
+        screen_hsv = cv.cvtColor(screen, cv.COLOR_BGR2HSV)
+
+        hue_max = screen_hsv[:,:,0].max()
+        hue_min = screen_hsv[:, :, 0].min()
+
+        self.lower_bound = np.array([hue_min-10, 100, 100], np.uint8)
+        self.upper_bound = np.array([hue_max + 10, 255, 255], np.uint8)
+
+
     @staticmethod
     def _get_fingers_count(hand_contour):
         # https://docs.opencv.org/3.1.0/dd/d49/tutorial_py_contour_features.html
@@ -80,5 +107,3 @@ class MarkDetector:
         # https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html
         # https://en.wikipedia.org/wiki/Law_of_cosines
         return 0
-
-

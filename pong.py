@@ -2,24 +2,23 @@ import imutils
 import cv2
 
 from config import SHOW_DETECTIONS
-from detector.marker_detector import MarkDetector, Color
+from detector.marker_detector import MarkDetector
 from game_engine.pong_game import PongGame
 from utils.kalman import KalmanTracker
 from utils.positions_display import PositionsDisplay
 
 
 def run_game(display_detections=False, input_path=None):
+    green_detector = MarkDetector()
+    blue_detector = MarkDetector()
+    # find color green
+    green_detector.get_color()
+    blue_detector.get_color()
+    # find color blue: blue_detector.find_color()
     if input_path is None:
         video_capture = cv2.VideoCapture(0)
     else:
         video_capture = cv2.VideoCapture(input_path)
-
-    # position = (0, 0)
-
-    green_detector = MarkDetector(Color.GREEN)
-    blue_detector = MarkDetector(Color.BLUE)
-    # find color green
-    # find color blue: blue_detector.find_color()
     pong_game = PongGame()
 
     while True:
